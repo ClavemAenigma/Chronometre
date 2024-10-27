@@ -8,9 +8,9 @@
         body {
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centre horizontalement */
-            justify-content: center; /* Centre verticalement */
-            height: 100vh; /* Prend toute la hauteur de la fenêtre */
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             font-family: Arial, sans-serif;
         }
         #time {
@@ -27,7 +27,7 @@
     <div id="time">00:00:00.00</div>
     <button id="startStopButton">Démarrer</button>
     <button id="recordButton">Enregistrer le temps</button>
-    <div id="records" style="display: none;"> <!-- Initialement caché -->
+    <div id="records" style="display: none;">
         <h2>Temps enregistrés</h2>
         <ul id="recordList"></ul>
     </div>
@@ -36,51 +36,45 @@
 
     <script>
         let interval;
-        let elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0; // Récupère le temps écoulé
-        let running = localStorage.getItem('running') === 'true'; // Récupère l'état du chronomètre
+        let elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0;
+        let running = localStorage.getItem('running') === 'true';
         const password = "tonMotDePasse"; // Remplace par le mot de passe souhaité
         let startTime;
 
         function updateTime() {
-            const currentTime = performance.now();
-            const totalElapsed = running ? elapsedTime + (currentTime - startTime) : elapsedTime;
+            const totalElapsed = running ? elapsedTime + (performance.now() - startTime) : elapsedTime;
             const totalSeconds = Math.floor(totalElapsed / 1000);
             const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
             const seconds = String(totalSeconds % 60).padStart(2, '0');
             const centiseconds = String(Math.floor((totalElapsed % 1000) / 10)).padStart(2, '0');
             document.getElementById('time').textContent = `${minutes}:${seconds}.${centiseconds}`;
-            localStorage.setItem('elapsedTime', totalElapsed); // Met à jour le temps dans localStorage
+            localStorage.setItem('elapsedTime', totalElapsed);
         }
 
-        // Si le chronomètre est en cours d'exécution, récupère l'heure de début
         if (running) {
-            startTime = parseInt(localStorage.getItem('startTime'));
+            startTime = parseInt(localStorage.getItem('startTime')) || performance.now();
             interval = setInterval(updateTime, 10);
             document.getElementById('startStopButton').textContent = 'Arrêter';
-            document.getElementById('records').style.display = 'block'; // Affiche les temps enregistrés
+            document.getElementById('records').style.display = 'block';
         }
 
         document.getElementById('startStopButton').addEventListener('click', () => {
             const userInput = prompt("Entrez le mot de passe pour démarrer/arrêter le chronomètre :");
             if (userInput === password) {
                 if (!running) {
-                    // Démarrer le chronomètre
-                    startTime = performance.now(); // Utilise performance.now()
+                    startTime = performance.now();
                     localStorage.setItem('startTime', startTime);
                     interval = setInterval(updateTime, 10);
                     document.getElementById('startStopButton').textContent = 'Arrêter';
                     running = true;
-                    localStorage.setItem('running', 'true'); // Mémorise l'état du chronomètre
-                    document.getElementById('records').style.display = 'block'; // Afficher les temps enregistrés
+                    localStorage.setItem('running', 'true');
+                    document.getElementById('records').style.display = 'block';
                 } else {
-                    // Arrêter le chronomètre
                     clearInterval(interval);
                     elapsedTime += performance.now() - startTime;
                     document.getElementById('startStopButton').textContent = 'Démarrer';
                     running = false;
-                    localStorage.setItem('running', 'false'); // Met à jour l'état du chronomètre
-                    elapsedTime = 0; // Réinitialise le chronomètre
-                    localStorage.setItem('elapsedTime', elapsedTime); // Met à jour localStorage
+                    localStorage.setItem('running', 'false');
                 }
             } else {
                 alert("Mot de passe incorrect !");
@@ -101,19 +95,27 @@
                 li.textContent = `${pseudo} : ${timeString}`;
                 document.getElementById('recordList').appendChild(li);
                 
-                // Afficher le message de confirmation
                 document.getElementById('confirmation').textContent = `Temps enregistré pour ${pseudo} : ${timeString}`;
             }
         });
 
         // Synchronisation du chronomètre entre les onglets
         window.addEventListener('storage', (event) => {
-            if (event.key === 'elapsedTime' || event.key === 'running') {
-                updateTime();
+            if (event.key === 'elapsedTime' || event.key === 'running' || event.key === 'startTime') {
+                elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0;
+                running = localStorage.getItem('running') === 'true';
+                startTime = parseInt(localStorage.getItem('startTime')) || performance.now();
+                if (running) {
+                    interval = setInterval(updateTime, 10);
+                    document.getElementById('startStopButton').textContent = 'Arrêter';
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('startStopButton').textContent = 'Démarrer';
+                }
+                updateTime(); // Met à jour l'affichage
             }
         });
 
-        // Initialisation
         updateTime(); // Affiche le temps initial
     </script>
 </body>

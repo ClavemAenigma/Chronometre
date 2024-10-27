@@ -19,12 +19,6 @@
         #confirmation {
             color: green;
         }
-        #hiddenImage {
-            display: none; /* Cachée par défaut */
-            max-width: 100%; /* S'assure que l'image ne dépasse pas la largeur de la page */
-            height: auto; /* Garde les proportions de l'image */
-            margin-bottom: 20px; /* Espace entre l'image et le chronomètre */
-        }
     </style>
 </head>
 <body>
@@ -33,18 +27,12 @@
     <div id="time">00:00:00.00</div>
     <button id="startStopButton">Démarrer</button>
     <button id="recordButton">Enregistrer le temps</button>
-    <button id="toggleImageButton">Afficher/Cacher l'image</button>
-    <input type="file" id="imageInput" accept="image/*" style="display: none;">
-    <button id="selectImageButton">Sélectionner une image</button>
-    
     <div id="records" style="display: none;"> <!-- Initialement caché -->
         <h2>Temps enregistrés</h2>
         <ul id="recordList"></ul>
     </div>
     
     <div id="confirmation"></div>
-    
-    <img id="hiddenImage" src="" alt="Description de l'image"> <!-- Chemin de l'image sélectionnée -->
 
     <script>
         let interval;
@@ -54,7 +42,7 @@
         let startTime;
 
         function updateTime() {
-            const currentTime = Date.now();
+            const currentTime = performance.now();
             const totalElapsed = running ? elapsedTime + (currentTime - startTime) : elapsedTime;
             const totalSeconds = Math.floor(totalElapsed / 1000);
             const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -77,8 +65,8 @@
             if (userInput === password) {
                 if (!running) {
                     // Démarrer le chronomètre
-                    startTime = Date.now();
-                    localStorage.setItem('startTime', startTime); // Mémorise l'heure de début
+                    startTime = performance.now(); // Utilise performance.now()
+                    localStorage.setItem('startTime', startTime);
                     interval = setInterval(updateTime, 10);
                     document.getElementById('startStopButton').textContent = 'Arrêter';
                     running = true;
@@ -87,7 +75,7 @@
                 } else {
                     // Arrêter le chronomètre
                     clearInterval(interval);
-                    elapsedTime += Date.now() - startTime;
+                    elapsedTime += performance.now() - startTime;
                     document.getElementById('startStopButton').textContent = 'Démarrer';
                     running = false;
                     localStorage.setItem('running', 'false'); // Met à jour l'état du chronomètre
@@ -100,7 +88,7 @@
         });
 
         document.getElementById('recordButton').addEventListener('click', () => {
-            const totalElapsed = running ? elapsedTime + (Date.now() - startTime) : elapsedTime;
+            const totalElapsed = running ? elapsedTime + (performance.now() - startTime) : elapsedTime;
             const totalSeconds = Math.floor(totalElapsed / 1000);
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
@@ -115,38 +103,6 @@
                 
                 // Afficher le message de confirmation
                 document.getElementById('confirmation').textContent = `Temps enregistré pour ${pseudo} : ${timeString}`;
-            }
-        });
-
-        document.getElementById('toggleImageButton').addEventListener('click', () => {
-            const userInput = prompt("Entrez le mot de passe pour afficher/cacher l'image :");
-            if (userInput === password) {
-                const image = document.getElementById('hiddenImage');
-                image.style.display = image.style.display === 'none' ? 'block' : 'none'; // Affiche ou cache l'image
-            } else {
-                alert("Mot de passe incorrect !");
-            }
-        });
-
-        document.getElementById('selectImageButton').addEventListener('click', () => {
-            const userInput = prompt("Entrez le mot de passe pour sélectionner une image :");
-            if (userInput === password) {
-                document.getElementById('imageInput').click(); // Ouvre le sélecteur de fichiers
-            } else {
-                alert("Mot de passe incorrect !");
-            }
-        });
-
-        document.getElementById('imageInput').addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgElement = document.getElementById('hiddenImage');
-                    imgElement.src = e.target.result; // Définit la source de l'image
-                    imgElement.style.display = 'block'; // Affiche l'image
-                };
-                reader.readAsDataURL(file);
             }
         });
 

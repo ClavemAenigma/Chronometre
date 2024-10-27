@@ -5,27 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chronomètre</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        #time { font-size: 2em; }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centre horizontalement */
+            justify-content: center; /* Centre verticalement */
+            height: 100vh; /* Prend toute la hauteur de la fenêtre */
+            font-family: Arial, sans-serif;
+        }
+        #time {
+            font-size: 2em;
+        }
+        #confirmation {
+            color: green;
+        }
+        img {
+            max-width: 100%; /* S'assure que l'image ne dépasse pas la largeur de la page */
+            height: auto; /* Garde les proportions de l'image */
+            margin-bottom: 20px; /* Espace entre l'image et le chronomètre */
+        }
     </style>
 </head>
 <body>
 
+    <img src="chemin/vers/ton_image.jpg" alt="Description de l'image"> <!-- Remplace par le chemin de ton image -->
+    
     <h1>Chronomètre</h1>
     <div id="time">00:00:00.00</div>
     <button id="startStopButton">Démarrer</button>
     <button id="recordButton">Enregistrer le temps</button>
     
-    <div id="records">
+    <div id="records" style="display: none;"> <!-- Initialement caché -->
         <h2>Temps enregistrés</h2>
         <ul id="recordList"></ul>
     </div>
+    
+    <div id="confirmation"></div>
 
     <script>
         let interval;
         let startTime;
         let elapsedTime = 0; // Temps écoulé en millisecondes
         let running = false;
+        const password = "tonMotDePasse"; // Remplace par le mot de passe souhaité
+        let isAuthorized = false; // Indique si l'utilisateur a accès aux temps enregistrés
 
         function updateTime() {
             const totalElapsed = running ? elapsedTime + (Date.now() - startTime) : elapsedTime;
@@ -37,18 +60,25 @@
         }
 
         document.getElementById('startStopButton').addEventListener('click', () => {
-            if (!running) {
-                // Démarrer le chronomètre
-                startTime = Date.now();
-                interval = setInterval(updateTime, 10);
-                document.getElementById('startStopButton').textContent = 'Arrêter';
-                running = true;
+            const userInput = prompt("Entrez le mot de passe pour démarrer/arrêter le chronomètre :");
+            if (userInput === password) {
+                if (!running) {
+                    // Démarrer le chronomètre
+                    startTime = Date.now();
+                    interval = setInterval(updateTime, 10);
+                    document.getElementById('startStopButton').textContent = 'Arrêter';
+                    running = true;
+                    isAuthorized = true; // L'utilisateur est autorisé à voir les temps
+                    document.getElementById('records').style.display = 'block'; // Afficher les temps enregistrés
+                } else {
+                    // Arrêter le chronomètre
+                    clearInterval(interval);
+                    elapsedTime += Date.now() - startTime;
+                    document.getElementById('startStopButton').textContent = 'Démarrer';
+                    running = false;
+                }
             } else {
-                // Arrêter le chronomètre
-                clearInterval(interval);
-                elapsedTime += Date.now() - startTime;
-                document.getElementById('startStopButton').textContent = 'Démarrer';
-                running = false;
+                alert("Mot de passe incorrect !");
             }
         });
 
@@ -65,6 +95,9 @@
                 const li = document.createElement('li');
                 li.textContent = `${pseudo} : ${timeString}`;
                 document.getElementById('recordList').appendChild(li);
+                
+                // Afficher le message de confirmation
+                document.getElementById('confirmation').textContent = `Temps enregistré pour ${pseudo} : ${timeString}`;
             }
         });
 

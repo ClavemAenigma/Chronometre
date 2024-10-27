@@ -74,11 +74,11 @@
                 if (!running) {
                     // Démarrer le chronomètre
                     startTime = Date.now();
+                    localStorage.setItem('startTime', startTime); // Mémorise l'heure de début
                     interval = setInterval(updateTime, 10);
                     document.getElementById('startStopButton').textContent = 'Arrêter';
                     running = true;
                     localStorage.setItem('running', 'true'); // Mémorise l'état du chronomètre
-                    localStorage.setItem('startTime', startTime); // Mémorise l'heure de début
                     document.getElementById('records').style.display = 'block'; // Afficher les temps enregistrés
                 } else {
                     // Arrêter le chronomètre
@@ -109,6 +109,13 @@
                 
                 // Afficher le message de confirmation
                 document.getElementById('confirmation').textContent = `Temps enregistré pour ${pseudo} : ${timeString}`;
+            }
+        });
+
+        // Synchronisation du chronomètre entre les onglets
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'elapsedTime' || event.key === 'running') {
+                updateTime();
             }
         });
 

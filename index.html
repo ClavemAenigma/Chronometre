@@ -45,7 +45,7 @@
     <script>
         let interval;
         let startTime;
-        let elapsedTime = 0; // Temps écoulé en millisecondes
+        let elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0; // Récupère le temps écoulé depuis localStorage
         let running = false;
         const password = "tonMotDePasse"; // Remplace par le mot de passe souhaité
         let isAuthorized = false; // Indique si l'utilisateur a accès aux temps enregistrés
@@ -57,6 +57,16 @@
             const seconds = String(totalSeconds % 60).padStart(2, '0');
             const centiseconds = String(Math.floor((totalElapsed % 1000) / 10)).padStart(2, '0');
             document.getElementById('time').textContent = `${minutes}:${seconds}.${centiseconds}`;
+            localStorage.setItem('elapsedTime', totalElapsed); // Met à jour le temps dans localStorage
+        }
+
+        // Vérifie si le chronomètre doit démarrer
+        if (localStorage.getItem('running') === 'true') {
+            running = true;
+            startTime = Date.now();
+            interval = setInterval(updateTime, 10);
+            document.getElementById('startStopButton').textContent = 'Arrêter';
+            document.getElementById('records').style.display = 'block'; // Affiche les temps enregistrés
         }
 
         document.getElementById('startStopButton').addEventListener('click', () => {
@@ -69,6 +79,7 @@
                     document.getElementById('startStopButton').textContent = 'Arrêter';
                     running = true;
                     isAuthorized = true; // L'utilisateur est autorisé à voir les temps
+                    localStorage.setItem('running', 'true'); // Mémorise l'état du chronomètre
                     document.getElementById('records').style.display = 'block'; // Afficher les temps enregistrés
                 } else {
                     // Arrêter le chronomètre
@@ -76,6 +87,7 @@
                     elapsedTime += Date.now() - startTime;
                     document.getElementById('startStopButton').textContent = 'Démarrer';
                     running = false;
+                    localStorage.setItem('running', 'false'); // Met à jour l'état du chronomètre
                 }
             } else {
                 alert("Mot de passe incorrect !");
